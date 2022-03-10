@@ -4,6 +4,6 @@
 
 第二个bug是一个案例MSRC选择不认，漏洞是rasapi中的整数溢出导致的堆溢出，我得到的回复是To cause the crash, one must be local on that box, and update a registry key to change the length of the data. The proof-of-concept then calls into RasSetEapUserDataW which reads the reg key and performs length calculations based on the malformed data. A crash then occurs within a subsequent memcpy. We could not find a legitimate code path that rasman svchost would encounter this issue for potential EoP. Having to set this reg key beforehand would eliminate a realistic RCE vector.  A fix for this issue will be considered in a future version of this product or service.
 
-第三个bug是一个案例被MSRC认了提权但是被撞了，漏洞是受系统信任的自定义marshal中的整数溢出导致的越界写零漏洞。
+第三个bug是一个案例被MSRC认了提权但是被撞了，漏洞是受系统信任的自定义marshal中的整数溢出导致的越界写零漏洞.目前已分配CVE-2022-21967。
 
 第四个bug分为两个案例（报告分为四个，两处空指针，两处越界读），该报告的中的两处空指针MSRC选择不认，漏洞通过clusport.sys中的ioctl调用触发。
